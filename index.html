@@ -9,6 +9,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="vu-consentform.css">
 	<script>
+
 // Array of 6 CBWN condition URLs
 var cbwn_urls = [
     'https://fpjw3vxqme.cognition.run/', // Condition 1: DEUT set A TRITAN set B to TRITAN set B DEUT set A
@@ -19,9 +20,35 @@ var cbwn_urls = [
     'https://orhbdjsrnl.cognition.run/'  // Condition 6: DEUT TRITAN to TRITAN DEUT
 ];
 
-// Randomly select one of the 6 URLs
-var test_url = cbwn_urls[Math.floor(Math.random() * cbwn_urls.length)];
+// Get participant ID from URL (Prolific or MTurk)
+var urlParams = new URLSearchParams(window.location.search);
+var participantID = urlParams.get('PROLIFIC_PID') || urlParams.get('workerId') || urlParams.get('participant_id');
 
+// Hash the participant ID to get a consistent random assignment
+function hashCode(str) {
+    var hash = 0;
+    if (str.length === 0) return hash;
+    for (var i = 0; i < str.length; i++) {
+        var char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
+}
+
+// Assign to condition based on participant ID
+var conditionIndex = participantID ? hashCode(participantID) % 6 : Math.floor(Math.random() * 6);
+var test_url = cbwn_urls[conditionIndex];
+
+// Preserve any query parameters from the current URL
+if (window.location.search.length > 0) {
+    test_url = test_url + (test_url.includes('?') ? '&' : '?') + window.location.search.substring(1);
+}
+
+function accept_clicked() { 
+    location.href = test_url; 
+}
+		
 // Preserve any query parameters from the current URL
 if (window.location.search.length > 0) {
     test_url = test_url + (test_url.includes('?') ? '&' : '?') + window.location.search.substring(1);
